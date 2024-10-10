@@ -60,7 +60,7 @@ export const deleteTour = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const tour = await Tour.findByIdAndDelete(id);
+    await Tour.findByIdAndDelete(id);
 
     if (!tour)
       return res.status(404).json({
@@ -68,7 +68,7 @@ export const deleteTour = async (req, res) => {
         message: `No tour with this id ${id}`,
       });
 
-    res.status(200).json({
+    res.status(204).json({
       null: null,
     });
   } catch (error) {
