@@ -22,7 +22,17 @@ export const getAllTours = async (req, res) => {
 
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (m) => `$${m}`); //Replace all sign
 
-    let query = Tour.find(JSON.parse(queryStr)).select('price');
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // Sorting tour
+
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
 
     const tours = await query;
 
