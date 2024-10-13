@@ -48,6 +48,14 @@ export const getAllTours = async (req, res) => {
     const page = Number(req.query.page || 1); // page 2 => 4 - 6
     const skip = Number((page - 1) * limit);
 
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments(); //Find the number of pages
+      console.log(numTours, skip);
+      if (skip > numTours) {
+        throw new Error(`This page is not available`);
+      }
+    }
+
     query.skip(skip).limit(limit);
 
     const tours = await query;
@@ -62,7 +70,7 @@ export const getAllTours = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       status: 'fail',
-      message: `Invalid data sent`,
+      message: error.message,
     });
   }
 };
