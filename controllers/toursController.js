@@ -33,7 +33,7 @@ export const getAllTours = async (req, res) => {
     } else {
       query = query.sort('-createdAt');
     }
-
+    // Add the selection fields
     if (req.query.fields) {
       const fields = req.query.fields.replaceAll(',', ' ');
 
@@ -41,6 +41,14 @@ export const getAllTours = async (req, res) => {
     } else {
       query = query.select('-createdAt, -__v');
     }
+
+    // Add the pagination
+
+    const limit = Number(req.query.limit || 3);
+    const page = Number(req.query.page || 1); // page 2 => 4 - 6
+    const skip = Number((page - 1) * limit);
+
+    query.skip(skip).limit(limit);
 
     const tours = await query;
 
