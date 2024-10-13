@@ -34,6 +34,14 @@ export const getAllTours = async (req, res) => {
       query = query.sort('-createdAt');
     }
 
+    if (req.query.fields) {
+      const fields = req.query.fields.replaceAll(',', ' ');
+
+      query = query.select(fields);
+    } else {
+      query = query.select('-createdAt, -__v');
+    }
+
     const tours = await query;
 
     res.status(200).json({
