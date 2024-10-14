@@ -2,6 +2,45 @@ import mongoose from 'mongoose';
 import Tour from './../models/tourModel.js';
 import APIFeatures from './../utils/APIFeatures.js';
 
+export const checkStatics = async (req, res, next) => {
+  try {
+    const toursStats = await Tour.aggregate([
+      {
+        $match: {
+          ratingsAverage: { $gte: 4.5 },
+        },
+      },
+      {
+        $group: {
+          _id: { $toUpper: '$difficulty' },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          numTours: { $sum: 1 },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      {
+        $sort: {
+          avgPrice: -1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      numResult: toursStats.length,
+      toursStats,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: error.message,
+    });
+  }
+};
+
 export const getAllTours = async (req, res) => {
   try {
     const features = new APIFeatures(Tour.find(), req.query)
