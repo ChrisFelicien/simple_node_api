@@ -2,6 +2,59 @@ import mongoose from 'mongoose';
 import Tour from './../models/tourModel.js';
 import APIFeatures from './../utils/APIFeatures.js';
 
+export const busyMonth = async (req, res, next) => {
+  try {
+    const year = Number(req.params.year);
+
+    const tours = await Tour.aggregate([
+      {
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: `${year}-01-01`,
+            $lte: `${year}-12-31`,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: { $toDate: '$startDates' } },
+          numTourStart: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: {
+          month: '$_id',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: {
+          numTourStart: -1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      numResult: tours.length,
+      tours,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: error.message,
+    });
+  }
+};
+
 export const checkStatics = async (req, res, next) => {
   try {
     const toursStats = await Tour.aggregate([
@@ -30,7 +83,6 @@ export const checkStatics = async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      numResult: toursStats.length,
       toursStats,
     });
   } catch (error) {
@@ -81,7 +133,7 @@ export const createTour = async (req, res) => {
   }
 };
 
-export const getTour = async (req, res) => {
+export const getTour = async (req, res, next) => {
   try {
     const { id } = req.params;
 
