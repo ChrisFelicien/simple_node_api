@@ -8,10 +8,12 @@ import {
   checkId,
   topFiveHighAndCheapestTour,
   checkStatics,
+  busyMonth,
 } from '../controllers/toursController.js';
 
 const router = Router();
 
+router.route('/monthly-plan/:year').get(busyMonth);
 router.route('/tours-stats').get(checkStatics);
 router.route('/top-five-cheapest').get(topFiveHighAndCheapestTour, getAllTours);
 router.param('id', checkId);
