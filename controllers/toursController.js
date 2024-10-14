@@ -1,64 +1,16 @@
-import Tour from './../models/tourModel.js';
 import mongoose from 'mongoose';
-
-export const checkId = (req, res, next, val) => {
-  if (!mongoose.Types.ObjectId.isValid(val)) {
-    return res.status(400).json({
-      status: 'fail',
-      message: `Sorry this id is not valid`,
-    });
-  }
-  next();
-};
+import Tour from './../models/tourModel.js';
+import APIFeatures from './../utils/APIFeatures.js';
 
 export const getAllTours = async (req, res) => {
   try {
-    const queryObj = { ...req.query };
-    const excludesFields = ['page', 'sort', 'limit', 'fields'];
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .selectFields()
+      .pagination();
 
-    excludesFields.forEach((filed) => delete queryObj[filed]);
-
-    let queryStr = JSON.stringify(queryObj);
-
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (m) => `$${m}`); //Replace all sign
-
-    let query = Tour.find(JSON.parse(queryStr));
-
-    // Sorting tour
-
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
-    }
-    // Add the selection fields
-    if (req.query.fields) {
-      const fields = req.query.fields.replaceAll(',', ' ');
-
-      query = query.select(fields);
-    } else {
-      query = query.select('-createdAt, -__v');
-    }
-
-    // Add the pagination
-
-    const limit = Number(req.query.limit || 3);
-    const page = Number(req.query.page || 1); // page 2 => 4 - 6
-    const skip = Number((page - 1) * limit);
-
-    if (req.query.page) {
-      const numTours = await Tour.countDocuments(); //Find the number of pages
-      console.log(numTours, skip);
-      if (skip > numTours) {
-        throw new Error(`This page is not available`);
-      }
-    }
-
-    query.skip(skip).limit(limit);
-
-    const tours = await query;
+    const tours = await features.query;
 
     res.status(200).json({
       status: 'success',
@@ -154,4 +106,21 @@ export const updatedTour = async (req, res) => {
       message: `Invalid data sent`,
     });
   }
+};
+
+export const topFiveHighAndCheapestTour = (req, res, next) => {
+  req.query.limit = 5;
+  req.query.sort = '-ratingsAverage4,price';
+  req.query.fields = 'price,name,duration,ratingsAverage,difficulty';
+  next();
+};
+
+export const checkId = (req, res, next, val) => {
+  if (!mongoose.Types.ObjectId.isValid(val)) {
+    return res.status(400).json({
+      status: 'fail',
+      message: `Sorry this id is not valid`,
+    });
+  }
+  next();
 };
