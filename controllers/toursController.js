@@ -99,13 +99,13 @@ export const getAllTours = asyncWrapper(async (req, res) => {
   });
 });
 
-export const createTour = async (req, res) => {
+export const createTour = asyncWrapper(async (req, res) => {
   const tour = await Tour.create(req.body);
   res.status(201).json({
     status: 'success',
     tour,
   });
-};
+});
 
 export const getTour = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
