@@ -3,6 +3,8 @@ import morgan from 'morgan';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import cors from 'cors';
+import globalErrorHandler from './controllers/errorController.js';
+import AppError from './utils/appError.js';
 
 const app = express();
 
@@ -19,5 +21,13 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
+
+// Handle 404 routes
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
+});
+
+app.use(globalErrorHandler);
 
 export default app;
