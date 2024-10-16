@@ -133,27 +133,26 @@ export const createTour = async (req, res) => {
   }
 };
 
-export const getTour = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+export const getTour = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const tour = await Tour.findById(id);
 
-    const tour = await Tour.findById(id);
+  if (!tour) throw new Error(`No tour with this id`);
 
-    if (!tour) throw new Error(`No tour with this id`);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: error.message,
-    });
-  }
-};
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
+  // try {
+  // } catch (error) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: error.message,
+  //   });
+  // }
+});
 
 export const deleteTour = async (req, res) => {
   try {
@@ -214,4 +213,8 @@ export const checkId = (req, res, next, val) => {
     });
   }
   next();
+};
+
+const asyncWrapper = (cb) => {
+  cb(req, res, next).catch((err) => next(err));
 };

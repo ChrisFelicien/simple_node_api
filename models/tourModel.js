@@ -41,7 +41,13 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
-      default: 0,
+      validate: {
+        validator: function (value) {
+          return this.price > value;
+        },
+
+        message: `Sorry price discount ({VALUE}) should be less then the regular price.`,
+      },
     },
     summary: {
       type: String,
