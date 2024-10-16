@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import Tour from './../models/tourModel.js';
 import APIFeatures from './../utils/APIFeatures.js';
-
-const asyncWrapper = (cb) => (req, res, next) => cb(req, res, next).catch(next);
+import asyncWrapper from './asyncWrapper.js';
+import AppError from '../utils/appError.js';
 
 export const busyMonth = asyncWrapper(async (req, res, next) => {
   const year = Number(req.params.year);
@@ -111,8 +111,9 @@ export const getTour = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
   const tour = await Tour.findById(id);
 
-  if (!tour) throw new Error(`No tour with this id`);
-
+  if (!tour) {
+    return next(new AppError(`Sorry, No tour found with this ID.`, 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -124,7 +125,11 @@ export const getTour = asyncWrapper(async (req, res, next) => {
 export const deleteTour = asyncWrapper(async (req, res) => {
   const { id } = req.params;
 
-  await Tour.findByIdAndDelete(id);
+  const tour = await Tour.findByIdAndDelete(id);
+
+  if (!tour) {
+    return next(new AppError(`Sorry, No tour found with this ID.`, 404));
+  }
 
   res.status(204).json({
     null: null,
@@ -139,11 +144,9 @@ export const updatedTour = asyncWrapper(async (req, res) => {
     runValidators: true,
   });
 
-  if (!tour)
-    return res.status(404).json({
-      status: 'fail',
-      message: `No tour with this id`,
-    });
+  if (!tour) {
+    return next(new AppError(`Sorry, No tour found with this ID.`, 404));
+  }
 
   res.status(200).json({
     status: 'success',
@@ -162,7 +165,7 @@ export const checkId = (req, res, next, val) => {
   if (!mongoose.Types.ObjectId.isValid(val)) {
     return res.status(400).json({
       status: 'fail',
-      message: `Sorry this id is not valid`,
+      message: `Sorry, Please provide a valid id`,
     });
   }
   next();
