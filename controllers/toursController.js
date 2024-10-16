@@ -2,8 +2,7 @@ import mongoose from 'mongoose';
 import Tour from './../models/tourModel.js';
 import APIFeatures from './../utils/APIFeatures.js';
 
-const asyncWrapper = (cb) => (req, res, next) =>
-  cb(req, res, next).catch((err) => next(err));
+const asyncWrapper = (cb) => (req, res, next) => cb(req, res, next).catch(next);
 
 export const busyMonth = asyncWrapper(async (req, res, next) => {
   const year = Number(req.params.year);
