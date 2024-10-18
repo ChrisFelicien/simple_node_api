@@ -1,11 +1,16 @@
 import User from './../models/userModel.js';
+import asyncWrapper from './asyncWrapper.js';
 
-export const getAllUsers = (req, res) => {
+export const getAllUsers = asyncWrapper(async (req, res) => {
+  const users = await User.find();
   res.status(200).json({
     status: 'success',
-    data: 'All users routes',
+    results: users.length,
+    data: {
+      users,
+    },
   });
-};
+});
 
 export const getUser = (req, res) => {
   res.status(200).json({
