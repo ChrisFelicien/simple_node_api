@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
       },
       message: `Password and password confirm must be equal.`,
     },
+    select: 0,
   },
   photo: {
     type: String,
@@ -40,12 +41,11 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
-  const salt = bcrypt.genSaltSync(10);
-
-  console.log(bcrypt.hashSync(this.password, salt));
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
   next();
 });
 
