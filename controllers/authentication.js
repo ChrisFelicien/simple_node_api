@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import User from './../models/userModel.js';
 import asyncWrapper from './asyncWrapper.js';
 import AppError from './../utils/appError.js';
@@ -77,10 +76,21 @@ export const protect = asyncWrapper(async (req, res, next) => {
 
   // Check if the user didn't change is password
   if (currentUser.hasPasswordBeenChanged(decoded.iat)) {
-    console.log('Runs');
     next(new AppError('The user password has been changed try to login', 401));
   }
   req.user = currentUser;
 
   next();
 });
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    const { role } = req.user;
+    if (!roles.includes(role)) {
+      next(
+        new AppError(`Sorry you are not allowed to perform this action`, 403)
+      );
+    }
+    next();
+  };
+};
