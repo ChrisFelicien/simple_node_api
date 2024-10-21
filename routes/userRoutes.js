@@ -6,7 +6,7 @@ import {
   getUser,
   updateUser,
 } from '../controllers/usersController.js';
-import { login, signup } from '../controllers/authentication.js';
+import { login, signup, protect } from '../controllers/authentication.js';
 
 const router = Router();
 

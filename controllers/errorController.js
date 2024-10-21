@@ -38,6 +38,17 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleExpiredTokenError = (res) =>
+  res.status(401).json({
+    status: 'fail',
+    message: 'Invalid token please login',
+  });
+
+const handleTokenError = (err, res) => {
+  res
+    .status(401)
+    .json({ message: 'invalid token, please login', status: 'fail' });
+};
 export default (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -57,5 +68,9 @@ export default (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     error = handleValidationErrorDB(error);
   }
+  if (err.name === 'JsonWebTokenError') return handleTokenError(err, res);
+  if (err.name === 'TokenExpiredError')
+    return handleExpiredTokenError(err, res);
+
   return productionError(error, res);
 };

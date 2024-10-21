@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { promisify } from 'util';
 import User from './../models/userModel.js';
 import asyncWrapper from './asyncWrapper.js';
 import AppError from './../utils/appError.js';
@@ -50,4 +51,36 @@ export const login = asyncWrapper(async (req, res, next) => {
     token,
     user,
   });
+});
+
+export const protect = asyncWrapper(async (req, res, next) => {
+  // check if the token is provided
+  let token;
+  const { authorization } = req.headers;
+  // if(req.headers)
+
+  if (authorization && authorization.startsWith('Bearer')) {
+    token = authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    next(new AppError('You are not logged in, Please log to access', 401));
+  }
+
+  // check if the token is valid
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    next(new AppError('The user no longer exist.', 401));
+  }
+
+  // Check if the user didn't change is password
+  if (currentUser.hasPasswordBeenChanged(decoded.iat)) {
+    console.log('Runs');
+    next(new AppError('The user password has been changed try to login', 401));
+  }
+  req.user = currentUser;
+
+  next();
 });
