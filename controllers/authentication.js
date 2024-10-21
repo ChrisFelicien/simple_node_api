@@ -75,7 +75,7 @@ export const protect = asyncWrapper(async (req, res, next) => {
   }
 
   // Check if the user didn't change is password
-  if (currentUser.hasPasswordBeenChanged(decoded.iat)) {
+  if (currentUser?.hasPasswordBeenChanged(decoded.iat)) {
     next(new AppError('The user password has been changed try to login', 401));
   }
   req.user = currentUser;
@@ -94,3 +94,17 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+
+export const forgotPassword = asyncWrapper(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new AppError('No user find', 404));
+  }
+
+  const resetToken = user.createPasswordReset();
+  await user.save({ validateBeforeSave: false });
+});
+
+export const resetPassword = (req, res, next) => {};
